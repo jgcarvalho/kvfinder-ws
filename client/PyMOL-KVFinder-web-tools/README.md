@@ -19,7 +19,7 @@ Welcome to PyMOL KVFinder-web Tools guide, which aims to aid developers with rel
 
 Follow these steps to install PyMOL KVFinder-web Tools:
 
-1. Install the necessary Python modules from [requirements.txt](https://github.com/jvsguerra/kvfinder-ws/blob/master/client/requirements.txt) file.
+1. Install the necessary Python modules from [requirements.txt](https://github.com/jvsguerra/kvfinder-ws/releases/download/v0.1/requirements.txt) file.
 
 ```bash
 $ pip3 install -r requirements.txt
