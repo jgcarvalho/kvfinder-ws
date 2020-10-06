@@ -158,7 +158,7 @@ The PyMOL KVFinder-web Tools are composed of five classes:
 
 5. `class Job(object)`: create the KVFinder-web job to be sent to KVFinder-web server. The class uploads(`upload(parameters)`) parameters from GUI in it, save(`.save(id))` and load(`.load(fn)`) `job.toml` file with information about the job for `Worker` thread operation, and export (`.export()`) files retrieved from GET response of a 'completed' job, including KVFinder results file (*.KVFinder.results.toml*), cavity PDB file (*.KVFinder.output.pdb*), log file (*KVFinder.log*) and parameters file (*parameters.toml* - optional).
 
-### Common HTTP Responses:
+### Common HTTP Responses
 
 Responses (`QNetwork.QNetworkReply.error()`) from KVFinder-web server when `QtNetwork.AccessManager()` sents a `.get()` or `.post()` request:
 
