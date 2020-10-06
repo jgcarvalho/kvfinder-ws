@@ -2,16 +2,46 @@
 
 Welcome to PyMOL KVFinder-web Tools guide, which aims to aid developers with relevant information about its operation.
 
-1. [Download & Installation](README.md#Download\ &\ Installation)
-2. [Code Description](README.md#Code\ Description)
+1. [Download & Installation](#Download\ &\ Installation)
+    - [PyMOL Installation](#PyMOL\ Installation)
+2. [Code Description](#Code\ Description)
     - Threads
     - Classes
     - HTTP Responses
 
+---
 
 ## Download & Installation
 
-Download the PyMOL KVFinder-web Tools from [here](https://github.com/jvsguerra/kvfinder-ws/releases/download/v0.1/PyMOL-KVFinder-web-tools.zip).
+[PyMOL v2](https://pymol.org/2/) is required if you wish to use PyMOL KVFinder-web Tools. If necessary, refer to this [section](#PyMOL\ Installation) for installing PyMOL.
+
+Follow these steps to install PyMOL KVFinder-web Tools:
+
+- Download the latest release of PyMOL KVFinder-web Tools from [here](https://github.com/jvsguerra/kvfinder-ws/releases/download/v0.1/PyMOL-KVFinder-web-tools.zip).
+
+    1. Open PyMOL;
+    2. Go to **Plugin** menu &rarr; **Plugin Manager**;
+    3. The **Plugin Manager** window will open, go to the **Install New Plugin** tab;
+    4. Under **Install from local file** group, click on **Choose file...**;
+    5. The **Install Plugin** window will open, select the `PyMOL-KVFinder-web-Tools.zip`;
+    6. The **Select plugin directory** window will open, select `/home/user/.pymol/startup` and click **OK**;
+    7. The **Confirm** window will open, click on **OK**;
+    8. The **Sucess** window will open, confirming that the plugin has been installed;
+    9. Restart PyMOL;
+    10. **PyMOL KVFinder-web Tools** is ready to use under **Plugin** menu.
+
+
+Or, if you clone this [repository](https://github.com/jvsguerra/kvfinder-ws), instead of selecting PyMOL-KVFinder-web-Tools.zip (Step 5), user must select `__init__.py` of PyMOL-KVFinder-web-Tools directory
+
+2. Install the necessary Python modules from [requirements.txt](https://github.com/jvsguerra/kvfinder-ws/blob/master/client/requirements.txt) file.
+
+```bash
+pip3 install -r requirements.txt
+```
+
+---
+
+## PyMOL Installation
 
 ## Code Description
 
