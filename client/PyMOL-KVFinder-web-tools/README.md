@@ -6,6 +6,8 @@ Welcome to PyMOL KVFinder-web Tools guide, which aims to aid developers with rel
 
 1. Download & Installation
 2. PyMOL Installation
+    - Linux
+    - MacOS
 3. Code Description
     - Threads
     - Classes
