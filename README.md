@@ -57,9 +57,11 @@ Onde `{id}` é o __id__ recebido durante a submissão do _job_.
 
 TODO: Descrever o json de output e exemplificar em diferentes estados de execução...
 
-## Cliente
+## Cliente integrado ao PyMOL: PyMOL KVFinder-web Tools
 
-O exemplo de um cliente está disponível em `example/client.py`.
+O cliente PyMOL KVFinder-web Tools está disponível em `client/PyMOL-KVFinder-web-Tools`.
+
+Para mais informações, use o guia disponível [aqui](https://github.com/jvsguerra/kvfinder-ws/blob/master/client/PyMOL-KVFinder-web-tools/README.md)
 
 
 ## _Observações_
