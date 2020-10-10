@@ -290,7 +290,7 @@ class Tester(object):
                     elapsed_time = elapsed_time.total_seconds()
                     
                     # Save statistics
-                    size = sys.getsizeof(json.dump(job.output))
+                    size = sys.getsizeof(json.dumps(job.output))
                     with open('results/time-statistics.txt', 'a+') as out:
                         out.write(f"{job.id}\t{job.pdb}\t{elapsed_time:4f}\t{size}\t{job.input['settings']['probes']['probe_out']}\t{job.input['settings']['cutoffs']['removal_distance']}\t{self.n_workers}\n")
                 
@@ -399,11 +399,11 @@ if __name__ == "__main__":
             
             # Vary parameters (Probe Out and Removal Distance)
             if n_workers == 1:
-                # for po in [4.0, 6.0, 8.0]:
+                for po in [4.0, 6.0, 8.0]:
                     job = Job(pdb=pdb, probe_out=po)
                     tester.run(job)
-                    # time.sleep(1)
-                for rd in [0.0, 1.2]:
+                #     # time.sleep(1)
+                for rd in [0.6, 1.2, 1.8]:
                     job = Job(pdb=pdb, removal_distance=rd)
                     tester.run(job)
                     # time.sleep(1)
