@@ -329,7 +329,7 @@ class Tester(object):
         else:
             with open('results/thread.log', 'a+') as f:
                 f.write(f">{job.id}\n")
-                f.write(str(r))
+                f.write(str(r) + '\n')
             return False
 
 
