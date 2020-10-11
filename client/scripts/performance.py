@@ -265,7 +265,7 @@ class Tester(object):
 
         time.sleep(10)
         
-        while count < 1:
+        while count < 5:
             print('Checking jobs ...')
             
             # Get job IDs
