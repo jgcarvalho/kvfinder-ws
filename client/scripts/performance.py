@@ -326,7 +326,7 @@ class Tester(object):
 
                 return True
         else:
-            with ('results/thread.log', 'a+') as f:
+            with open('results/thread.log', 'a+') as f:
                 f.write(f">{job.id}")
                 f.write(r)
             return False
