@@ -376,7 +376,7 @@ class Tester(object):
 def get_number_of_atoms(pdb):
     from Bio.PDB import PDBParser
     # Read pdb
-    parser = PDBParser()
+    parser = PDBParser(PERMISSIVE=1)
     structure = parser.get_structure(f"{pdb.replace('kv1000/', '').replace('.pdb', '')}", pdb)
     # Count number of atoms
     n_atoms = 0
