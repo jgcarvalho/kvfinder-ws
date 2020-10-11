@@ -421,14 +421,16 @@ if __name__ == "__main__":
                 for po in [4.0, 6.0, 8.0]:
                     job = Job(pdb=pdb, probe_out=po)
                     tester.run(job)
-                    # time.sleep(1)
+                    time.sleep(1)
                 for rd in [0.6, 1.2, 1.8]:
                     job = Job(pdb=pdb, removal_distance=rd)
                     tester.run(job)
-                    # time.sleep(1)
+                    time.sleep(1)
+                time.sleep(10)
             else:
                 job = Job(pdb=pdb)
                 tester.run(job)
+                time.sleep(10)
 
         while tester.thread.is_alive():
             time.sleep(5)
