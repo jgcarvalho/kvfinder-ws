@@ -313,7 +313,7 @@ class Tester(object):
         if r.ok:
             reply = r.json()
             print(reply['status'])
-            if reply['status'] == 'completed':
+            if reply['status'] == 'completed' or reply['status'] == 'timed_out':
                 # Pass output to job class
                 job.output = reply
                 job.status = reply['status']
@@ -329,7 +329,7 @@ class Tester(object):
         else:
             with open('results/thread.log', 'a+') as f:
                 f.write(f">{job.id}\n")
-                f.write(r)
+                f.write(str(r))
             return False
 
 
@@ -422,11 +422,11 @@ if __name__ == "__main__":
                 for po in [4.0, 6.0, 8.0]:
                     job = Job(pdb=pdb, probe_out=po)
                     tester.run(job)
-                    time.sleep(1)
+                    time.sleep(10)
                 for rd in [0.6, 1.2, 1.8]:
                     job = Job(pdb=pdb, removal_distance=rd)
                     tester.run(job)
-                    time.sleep(1)
+                    time.sleep(10)
                 time.sleep(10)
             else:
                 job = Job(pdb=pdb)
