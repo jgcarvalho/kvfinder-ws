@@ -286,15 +286,19 @@ class Tester(object):
                 # Get results
                 if self._get_results(job):
                     # Calculate elapsed time
-                    elapsed_time = dateutil.parser.isoparse(job.output['ended_at']) - dateutil.parser.isoparse(job.output['started_at'])
-                    elapsed_time = elapsed_time.total_seconds()
+                    try:
+                        elapsed_time = dateutil.parser.isoparse(job.output['ended_at']) - dateutil.parser.isoparse(job.output['started_at'])
+                        elapsed_time = elapsed_time.total_seconds()
+                        elapsed_time = f"{elapsed_time:4f}"
+                    except:
+                        elapsed_time = 'NA'
                     
                     # Save statistics
                     size = sys.getsizeof(json.dumps(job.output))
                     with open('results/time-statistics.txt', 'a+') as out:
-                        out.write(f"{job.id}\t{job.pdb}\t{get_number_of_atoms(pdb)}\t{elapsed_time:4f}\t{size}\t{job.input['settings']['probes']['probe_out']}\t{job.input['settings']['cutoffs']['removal_distance']}\t{self.n_workers}\n")
+                        out.write(f"{job.id}\t{job.pdb}\t{get_number_of_atoms(pdb)}\t{elapsed_time}\t{size}\t{job.input['settings']['probes']['probe_out']}\t{job.input['settings']['cutoffs']['removal_distance']}\t{self.n_workers}\n")
                 
-                # time.sleep(1)
+                time.sleep(1)
 
             if len(jobs) == 0:
                 count += 1
