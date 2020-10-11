@@ -220,7 +220,7 @@ class Dataset(object):
 
     @staticmethod
     def get_pdb_list(dirname):       
-        return [os.path.join(dirname, pdb) for pdb in os.listdir(dirname) if pdb.endswith('.pdb')]
+        return sorted([os.path.join(dirname, pdb) for pdb in os.listdir(dirname) if pdb.endswith('.pdb')])
 
     @staticmethod
     def get_statistics(dirname):
