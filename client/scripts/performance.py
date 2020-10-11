@@ -309,9 +309,10 @@ class Tester(object):
     def _get_results(self, job) -> Optional[Dict[str, Any]]:
         
         r = requests.get(self.server + '/' + job.id)
-        
+                
         if r.ok:
             reply = r.json()
+            print(reply['status'])
             if reply['status'] == 'completed':
                 # Pass output to job class
                 job.output = reply
