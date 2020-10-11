@@ -246,7 +246,7 @@ class Tester(object):
         # Create time statistics file
         if not os.path.exists('results/time-statistics.txt'):
             with open('results/time-statistics.txt', 'w') as f:
-                f.write('id\tpdb\telapsed_time\tsize\tprobe_out\tremoval_distance\tn_workers\n')
+                f.write('id\tpdb\nn_atoms\telapsed_time\tsize\tprobe_out\tremoval_distance\tn_workers\n')
 
         if not os.path.exists('results/time-n-workers.txt'):
             with open('results/time-n-workers.txt', 'w') as out:
@@ -265,7 +265,7 @@ class Tester(object):
 
         time.sleep(10)
         
-        while count < 10:
+        while count < 1:
             print('Checking jobs ...')
             
             # Get job IDs
@@ -292,7 +292,7 @@ class Tester(object):
                     # Save statistics
                     size = sys.getsizeof(json.dumps(job.output))
                     with open('results/time-statistics.txt', 'a+') as out:
-                        out.write(f"{job.id}\t{job.pdb}\t{elapsed_time:4f}\t{size}\t{job.input['settings']['probes']['probe_out']}\t{job.input['settings']['cutoffs']['removal_distance']}\t{self.n_workers}\n")
+                        out.write(f"{job.id}\t{job.pdb}\t{get_number_of_atoms(pdb)}\t{elapsed_time:4f}\t{size}\t{job.input['settings']['probes']['probe_out']}\t{job.input['settings']['cutoffs']['removal_distance']}\t{self.n_workers}\n")
                 
                 time.sleep(1)
 
@@ -369,6 +369,21 @@ class Tester(object):
             return False
 
 
+def get_number_of_atoms(pdb):
+    from Bio.PDB import PDBParser
+    # Read pdb
+    parser = PDBParser()
+    structure = parser.get_structure(f"{pdb.replace('kv1000/', '').replace('.pdb', '')}", pdb)
+    # Count number of atoms
+    n_atoms = 0
+    for model in structure:
+        for chain in model:
+            for residue in chain:
+                for atom in residue:
+                    n_atoms += 1
+    return n_atoms
+
+
 if __name__ == "__main__":
     # Load Dataset Information
     dataset = Dataset()
@@ -402,7 +417,7 @@ if __name__ == "__main__":
                 for po in [4.0, 6.0, 8.0]:
                     job = Job(pdb=pdb, probe_out=po)
                     tester.run(job)
-                #     # time.sleep(1)
+                    # time.sleep(1)
                 for rd in [0.6, 1.2, 1.8]:
                     job = Job(pdb=pdb, removal_distance=rd)
                     tester.run(job)
@@ -410,8 +425,6 @@ if __name__ == "__main__":
             else:
                 job = Job(pdb=pdb)
                 tester.run(job)
-            break
-            time.sleep(60)
 
         while tester.thread.is_alive():
             time.sleep(5)
