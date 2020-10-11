@@ -246,7 +246,7 @@ class Tester(object):
         # Create time statistics file
         if not os.path.exists('results/time-statistics.txt'):
             with open('results/time-statistics.txt', 'w') as f:
-                f.write('id\tpdb\nn_atoms\telapsed_time\tsize\tprobe_out\tremoval_distance\tn_workers\n')
+                f.write('id\tpdb\tn_atoms\telapsed_time\tsize\tprobe_out\tremoval_distance\tn_workers\n')
 
         if not os.path.exists('results/time-n-workers.txt'):
             with open('results/time-n-workers.txt', 'w') as out:
