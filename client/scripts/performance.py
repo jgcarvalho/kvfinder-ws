@@ -286,6 +286,8 @@ class Tester(object):
                 # Get results
                 if self._get_results(job):
                     # Calculate elapsed time
+                    print(job.output['ended_at'])
+                    print(job.output['started_at'])
                     elapsed_time = dateutil.parser.isoparse(job.output['ended_at']) - dateutil.parser.isoparse(job.output['started_at'])
                     elapsed_time = elapsed_time.total_seconds()
                     elapsed_time = f"{elapsed_time:4f}"
