@@ -286,19 +286,16 @@ class Tester(object):
                 # Get results
                 if self._get_results(job):
                     # Calculate elapsed time
-                    try:
-                        elapsed_time = dateutil.parser.isoparse(job.output['ended_at']) - dateutil.parser.isoparse(job.output['started_at'])
-                        elapsed_time = elapsed_time.total_seconds()
-                        elapsed_time = f"{elapsed_time:4f}"
-                    except:
-                        elapsed_time = 'NA'
+                    elapsed_time = dateutil.parser.isoparse(job.output['ended_at']) - dateutil.parser.isoparse(job.output['started_at'])
+                    elapsed_time = elapsed_time.total_seconds()
+                    elapsed_time = f"{elapsed_time:4f}"
                     
                     # Save statistics
                     size = sys.getsizeof(json.dumps(job.output))
                     with open('results/time-statistics.txt', 'a+') as out:
                         out.write(f"{job.id}\t{job.pdb}\t{get_number_of_atoms(pdb)}\t{elapsed_time}\t{size}\t{job.input['settings']['probes']['probe_out']}\t{job.input['settings']['cutoffs']['removal_distance']}\t{self.n_workers}\n")
                 
-                time.sleep(1)
+                time.sleep(5)
 
             if len(jobs) == 0:
                 count += 1
@@ -312,7 +309,7 @@ class Tester(object):
                 
         if r.ok:
             reply = r.json()
-            print(reply['status'])
+            # print(reply['status'])
             if reply['status'] == 'completed' or reply['status'] == 'timed_out':
                 # Pass output to job class
                 job.output = reply
@@ -399,10 +396,10 @@ if __name__ == "__main__":
     except FileExistsError:
         pass
 
-    with open('results/time-n-workers.txt', 'a+') as out:
-        out.write(f'n_workers\telapsed_time\n')
+    # with open('results/time-n-workers.txt', 'a+') as out:
+    #     out.write(f'n_workers\telapsed_time\n')
 
-    for n_workers in [1, 2, 3, 4]:
+    for n_workers in [1]:
 
         # Docker up
         os.system(f"docker-compose up -d --scale kv-worker={n_workers}")
@@ -438,8 +435,8 @@ if __name__ == "__main__":
 
         end = time.time()
         elapsed_time = end - start
-        with open('results/time-n-workers.txt', 'a+') as out:
-            out.write(f'{n_workers}\t{elapsed_time}\n')
+        # with open('results/time-n-workers.txt', 'a+') as out:
+        #     out.write(f'{n_workers}\t{elapsed_time}\n')
 
         # Docker down
         os.system(f"docker-compose down --volumes")
