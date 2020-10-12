@@ -228,12 +228,9 @@ class Dataset(object):
         return read_csv(os.path.join(dirname, 'statistics.txt'), sep='\t')
 
 
-class Tester(object):
-    """ Performance tester for KVFinder-web server """
+class Sender(object):
 
-    def __init__(self, server: str="http://localhost:8081", n_workers: int=1):
-        import threading
-        
+    def __init__(self, server: str="http://localhost:8081"):
         # Define server
         self.server = f"{server}"
 
@@ -246,30 +243,54 @@ class Tester(object):
         # Create time statistics file
         if not os.path.exists('results/time-statistics.txt'):
             with open('results/time-statistics.txt', 'w') as f:
-                f.write('id\tpdb\tn_atoms\telapsed_time\tsize\tprobe_out\tremoval_distance\tn_workers\n')
+                f.write('pdb\tid\tn_atoms\ttotal_time\telapsed_time\tworker_time\tn_workers\tjson_size\tprobe_out\tremoval_distance\n')
 
+    def run(self, job: Job):
+        if self._submit(job):
+            # Save job
+            job.status = 'queued'
+            job.save(job.id)
+        return
+
+    def _submit(self, job) -> bool:
+        r = requests.post(self.server + '/create', json=job.input)
+        if r.ok:
+            job.id = r.json()['id']
+            job.output_directory = 'results'
+            job.base_name = job.id
+            return True
+        else:
+            # Write in erros.log
+            with open('results/erros.log', 'a+') as log:
+                log.write(f"\n>{pdb}\n")
+                log.write(f"Probe Out: {job.input['settings']['probes']['probe_out']}\n")
+                log.write(f"Removal Distance: {job.input['settings']['cutoffs']['removal_distance']}\n")
+                log.write(r)     
+            print("Debug:", r)
+            return False
+
+
+class Retriever(object):
+
+    def __init__(self, server: str="http://localhost:8081", workers:int=1):
+        # Define server
+        self.server = f"{server}"
+        
         # Register number of workers in KVFinder-web server
-        self.n_workers = n_workers
+        self.workers = workers
+    
+    def start(self):
+
+        # Get job IDs
+        jobs = self._get_jobs()        
         
-        # Create worker to check jobs
-        self.thread = threading.Thread(name='Worker', target=self.worker)
-        self.thread.start()
-
-
-    def worker(self):
-        count = 0
-
-        time.sleep(10)
-        
-        while count < 5:
-            print('Checking jobs ...')
+        while len(jobs) > 0:
             
-            # Get job IDs
-            jobs = self._get_jobs()
-
+            msg = f'> Checking {len(jobs)} jobs!'
+            print(msg, end='', flush=True)
+            
             for job_id in jobs:
-                print(f"> Checking Job ID: {job_id}")
-
+                
                 # Get job information
                 job_fn = os.path.join('.KVFinder-web', job_id, 'job.toml')
 
@@ -281,22 +302,34 @@ class Tester(object):
 
                 # Get results
                 if self._get_results(job):
-                    # Calculate elapsed time
+                    # total_time
+                    total_time = dateutil.parser.parse(job.output['ended_at']) - dateutil.parser.parse(job.output['created_at'])
+                    total_time = f'{total_time.total_seconds():4f}'
+                    # elapsed_time
                     elapsed_time = dateutil.parser.parse(job.output['ended_at']) - dateutil.parser.parse(job.output['started_at'])
-                    elapsed_time = elapsed_time.total_seconds()
-                    elapsed_time = f"{elapsed_time:4f}"
+                    elapsed_time = f"{elapsed_time.total_seconds():4f}"
+                    # worker_time
+                    worker_time = dateutil.parser.parse(job.output['started_at']) - dateutil.parser.parse(job.output['created_at'])
+                    worker_time = f"{worker_time.total_seconds():4f}"
+                    # json_size
+                    json_size = sys.getsizeof(json.dumps(job.output))
+                    # n_atoms
+                    n_atoms = get_number_of_atoms(pdb)
+                    # po
+                    po = job.input['settings']['probes']['probe_out']
+                    # rd 
+                    rd = job.input['settings']['cutoffs']['removal_distance']
                     
                     # Save statistics
-                    size = sys.getsizeof(json.dumps(job.output))
                     with open('results/time-statistics.txt', 'a+') as out:
-                        out.write(f"{job.id}\t{job.pdb}\t{get_number_of_atoms(pdb)}\t{elapsed_time}\t{size}\t{job.input['settings']['probes']['probe_out']}\t{job.input['settings']['cutoffs']['removal_distance']}\t{self.n_workers}\n")
-                
-                time.sleep(5)
+                        out.write(f'{job.pdb}\t{job.id}\t{n_atoms}\t{total_time}\t{elapsed_time}\t{worker_time}\t{json_size}\t{po}\t{rd}\t{self.workers}\n')
 
-            if len(jobs) == 0:
-                count += 1
-            
-            time.sleep(5)
+                    # Remove job from jobs list
+                    jobs.remove(job_id)
+
+                time.sleep(1)
+
+            print(len(msg) * '\b', end='', flush=True)
 
 
     def _get_results(self, job) -> Optional[Dict[str, Any]]:
@@ -305,7 +338,6 @@ class Tester(object):
                 
         if r.ok:
             reply = r.json()
-            # print(reply['status'])
             if reply['status'] == 'completed' or reply['status'] == 'timed_out':
                 # Pass output to job class
                 job.output = reply
@@ -325,7 +357,6 @@ class Tester(object):
                 f.write(str(r) + '\n')
             return False
 
-
     @staticmethod
     def erase_job_dir(d) -> None:
         for f in os.listdir(d):
@@ -336,36 +367,8 @@ class Tester(object):
                 os.remove(f)
         os.rmdir(d)
 
-
     def _get_jobs(self) -> list:       
         return os.listdir('.KVFinder-web')
-       
-
-    def run(self, job: Job):
-        if self._submit(job):
-            # Save job
-            job.status = 'queued'
-            job.save(job.id)
-        return
-
-
-    def _submit(self, job) -> bool:
-        r = requests.post(self.server + '/create', json=job.input)
-        if r.ok:
-            job.id = r.json()['id']
-            job.output_directory = 'results'
-            job.base_name = job.id
-            return True
-        else:
-            # Write in erros.log
-            with open('results/erros.log', 'a+') as log:
-                log.write(f"\n>{pdb}\n")
-                log.write(f"Probe Out: {job.input['settings']['probes']['probe_out']}\n")
-                log.write(f"Removal Distance: {job.input['settings']['cutoffs']['removal_distance']}\n")
-                log.write(r)     
-            print("Debug:", r)
-            return False
-
 
 def get_number_of_atoms(pdb):
     from Bio.PDB import PDBParser
@@ -392,47 +395,37 @@ if __name__ == "__main__":
     except FileExistsError:
         pass
 
-    # with open('results/time-n-workers.txt', 'a+') as out:
-    #     out.write(f'n_workers\telapsed_time\n')
+    for workers in [1, 2, 3, 4]:
 
-    for n_workers in [1]:
+        print(f"[==> KV Server working with {workers} worker{'s' if workers > 1 else ''}")
 
         # Docker up
-        os.system(f"docker-compose up -d --scale kv-worker={n_workers}")
+        os.system(f'docker-compose up -d --scale kv-worker={workers}')
 
-        # Create and Configure Tester
-        tester = Tester(server="http://localhost:8081", n_workers=n_workers)
+        # Create and Configure Sender
+        sender = Sender(server="http://localhost:8081")
 
-        start = time.time()
+        print("> Sending jobs to KV Server")
 
-        # Pass Jobs to Tester
-        for pdb in dataset.pdb_list:
-            # Show pdb
-            print(f'> {pdb}')
-            
-            # Vary parameters (Probe Out and Removal Distance)
-            if n_workers == 1:
-                for po in [4.0, 6.0, 8.0]:
-                    job = Job(pdb=pdb, probe_out=po)
-                    tester.run(job)
-                    time.sleep(10)
-                for rd in [0.6, 1.2, 1.8]:
-                    job = Job(pdb=pdb, removal_distance=rd)
-                    tester.run(job)
-                    time.sleep(10)
-                time.sleep(10)
-            else:
-                job = Job(pdb=pdb)
-                tester.run(job)
-                time.sleep(10)
+        # Send jobs to KV server
+        for pdb in dataset.pdb_list[0:10]:
+            print(f'> {pdb}', end='', flush=True)       
+            for po in [4.0, 6.0, 8.0]:
+                job = Job(pdb=pdb, probe_out=po)
+                sender.run(job)
+            for rd in [0.6, 1.2, 2.4]:
+                job = Job(pdb=pdb, removal_distance=rd)
+                sender.run(job)
+            print('\b' * 19, end='', flush=True)
+        
+        time.sleep(60)
 
-        while tester.thread.is_alive():
-            time.sleep(5)
+        print("> Retrieving jobs from KV Server")
 
-        end = time.time()
-        elapsed_time = end - start
-        # with open('results/time-n-workers.txt', 'a+') as out:
-        #     out.write(f'{n_workers}\t{elapsed_time}\n')
+        # Create and Configure Retriever
+        retriever = Retriever(server="http://localhost:8081")
+        # Start retriever
+        retriever.start()
 
-        # Docker down
-        os.system(f"docker-compose down --volumes")
+        # Erase .KVFinder-web
+        os.system('rm -r .KVFinder-web')
