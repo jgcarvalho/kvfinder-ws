@@ -248,10 +248,6 @@ class Tester(object):
             with open('results/time-statistics.txt', 'w') as f:
                 f.write('id\tpdb\tn_atoms\telapsed_time\tsize\tprobe_out\tremoval_distance\tn_workers\n')
 
-        if not os.path.exists('results/time-n-workers.txt'):
-            with open('results/time-n-workers.txt', 'w') as out:
-                out.write('n_workers\telapsed_time\n')
-
         # Register number of workers in KVFinder-web server
         self.n_workers = n_workers
         
@@ -286,8 +282,6 @@ class Tester(object):
                 # Get results
                 if self._get_results(job):
                     # Calculate elapsed time
-                    print(job.output['ended_at'])
-                    print(job.output['started_at'])
                     elapsed_time = dateutil.parser.parse(job.output['ended_at']) - dateutil.parser.parse(job.output['started_at'])
                     elapsed_time = elapsed_time.total_seconds()
                     elapsed_time = f"{elapsed_time:4f}"
