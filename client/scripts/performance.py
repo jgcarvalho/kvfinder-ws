@@ -1,8 +1,11 @@
 import os, sys, toml, json, zlib, time
 import requests
 import dateutil.parser
+import pandas as pd
+import matplotlib.pyplot as plt
 from typing import Optional, Any, Dict
-
+from math import ceil, floor
+        
 
 class Job(object):
     """ Create KVFinder-web job """
@@ -243,7 +246,7 @@ class Sender(object):
         # Create time statistics file
         if not os.path.exists('results/time-statistics.txt'):
             with open('results/time-statistics.txt', 'w') as f:
-                f.write('pdb\tid\tn_atoms\ttotal_time\telapsed_time\tworker_time\tn_workers\tjson_size\tprobe_out\tremoval_distance\n')
+                f.write('pdb\tid\tn_atoms\ttotal_time\telapsed_time\tworker_time\tjson_size\tprobe_out\tremoval_distance\tn_workers\n')
 
     def run(self, job: Job):
         if self._submit(job):
@@ -370,6 +373,198 @@ class Retriever(object):
     def _get_jobs(self) -> list:       
         return os.listdir('.KVFinder-web')
 
+
+class Evaluator(object):
+
+    def __init__(self, time_fn:str='results/time-statistics.txt'):
+        # Create images directory in results directory
+        try: 
+            os.mkdir('results/images/')
+        except FileExistsError:
+            pass
+
+        # Read time data
+        self.data = self.read(time_fn)
+
+    @staticmethod
+    def read(time_fn: str):
+        data = pd.read_table(time_fn, index_col=False)
+        return data
+
+    def scatter(self):
+        # Create scatter directory in images directory
+        try: 
+            os.mkdir('results/images/scatter')
+        except FileExistsError:
+            pass
+
+        for worker in [1, 2, 3, 4]:
+
+            # Get data from number of kv-workers
+            mask = self.data['n_workers'] == worker
+            data = self.data[mask]
+            data['json_size'] /= 1e6
+
+            if worker == 1:
+
+                # JSON size x Number of atoms - colored by probe out
+                x = 'Number of atoms'
+                y = 'JSON size (Mb)'
+                plt.clf()
+                plt.scatter(x='json_size', y='n_atoms', color='probe_out', data=data)
+                plt.xlabel(f'{x}')
+                plt.ylabel(f'{y}')
+                xmax = 1 * ceil(max(data['n_atoms']) / 1)
+                ymax = 10 * ceil(plt.axis()[3] / 10)
+                plt.axis([0, xmax, 0, ymax])
+                plt.grid(True)
+                plt.savefig('results/images/scatter/json_x_atoms_with_probe_out.png', dpi=300)
+
+                # JSON size x Number of atoms - colored by removal distance
+                x = 'Number of atoms'
+                y = 'JSON size (Mb)'
+                plt.clf()
+                plt.scatter(x='json_size', y='n_atoms', color='removal_distance', data=data)
+                plt.xlabel(f'{x}')
+                plt.ylabel(f'{y}')
+                xmax = 1 * ceil(max(data['n_atoms']) / 1)
+                ymax = 10 * ceil(plt.axis()[3] / 10)
+                plt.axis([0, xmax, 0, ymax])
+                plt.grid(True)
+                plt.savefig('results/images/scatter/json_x_atoms_with_removal_distance.png', dpi=300)
+                
+            # JSON size x Number of atoms - colored by elapsed time
+            x = 'Number of atoms'
+            y = 'JSON size (Mb)'
+            plt.clf()
+            plt.scatter(x='json_size', y='n_atoms', color='elapsed_time', data=data)
+            plt.xlabel(f'{x}')
+            plt.ylabel(f'{y}')
+            xmax = 1 * ceil(max(data['n_atoms']) / 1)
+            ymax = 10 * ceil(plt.axis()[3] / 10)
+            plt.axis([0, xmax, 0, ymax])
+            plt.grid(True)
+            plt.savefig(f"results/images/scatter/json_x_atoms_with_elapsed_time_{worker}_kv-worker{'s' if worker > 1 else ''}.png", dpi=300)
+
+            # Elapsed time x Number of atoms - colored by probe out
+            x = 'Number of atoms'
+            y = 'Elapsed time (s)'
+            plt.clf()
+            plt.scatter(x='n_atoms', y='elapsed_time', color='probe_out', data=data)
+            # k = np.polyfit(data['n_atoms'], data['elapsed_time'], 1)
+            # f = np.poly1d(k)
+            # plt.plot(data['n_atoms'], f(data['n_atoms']), "r--")
+            plt.xlabel(f'{x}')
+            plt.ylabel(f'{y}')
+            xmax = 1 * ceil(max(data['n_atoms']) / 1)
+            ymax = 10 * ceil(plt.axis()[3] / 10)
+            plt.axis([0, xmax, 0, ymax])
+            plt.grid(True)
+            plt.savefig(f"results/images/scatter/elapsed_time_x_atoms_with_probe_out_{worker}_kv-worker{'s' if worker > 1 else ''}.png", dpi=300)
+
+            # Elapsed time x Number of atoms - colored by removal distance
+            x = 'Number of atoms'
+            y = 'Elapsed time (s)'
+            plt.clf()
+            plt.scatter(x='n_atoms', y='elapsed_time', color='removal_distance', data=data)
+            # k = np.polyfit(data['n_atoms'], data['elapsed_time'], 1)
+            # f = np.poly1d(k)
+            # plt.plot(data['n_atoms'], f(data['n_atoms']), "r--")
+            plt.xlabel(f'{x}')
+            plt.ylabel(f'{y}')
+            xmax = 1 * ceil(max(data['n_atoms']) / 1)
+            ymax = 10 * ceil(plt.axis()[3] / 10)
+            plt.axis([0, xmax, 0, ymax])
+            plt.grid(True)
+            plt.savefig(f"results/images/scatter/elapsed_time_x_atoms_with_removal_distance_{worker}_kv-worker{'s' if worker > 1 else ''}.png", dpi=300)
+        
+
+    def hist(self):
+        # Create histogram directory in images directory
+        try: 
+            os.mkdir('results/images/histograms')
+        except FileExistsError:
+            pass
+
+        for worker in [1, 2, 3, 4]:
+            
+            # Get data from number of kv-workers
+            mask = self.data['n_workers'] == worker
+            data = self.data[mask]
+
+            if worker == 1:
+                # Number of atoms
+                x = 'Number of atoms'
+                y = 'Frequency'
+                plt.clf()
+                plt.hist('n_atoms', data=data, bins='auto')
+                plt.title(f'{x} for 1 kv-worker')
+                plt.xlabel(f'{x}')
+                plt.ylabel(f'{y}')
+                xmax = 10 * ceil(max(data['n_atoms']) / 10)
+                ymax = 10 * ceil(plt.axis()[3] / 10)
+                plt.axis([0, xmax, 0, ymax])
+                plt.grid(True)
+                plt.savefig('results/images/histograms/n_atoms.png', dpi=300)
+
+                # Results Json size (results, log, cavities)
+                x = 'JSON size (Mb)'
+                y = 'Frequency'
+                plt.clf()
+                plt.title(f'{x} for 1 kv-worker')
+                data['json_size'] /= 1e6
+                plt.hist('json_size', data=data, bins='auto')
+                plt.xlabel(f'{x}')
+                plt.ylabel(f'{y}')
+                xmax = 1 * ceil(max(data['json_size']) / 1)
+                ymax = 1 * ceil(plt.axis()[3] / 1)
+                plt.axis([0, xmax, 0, ymax])
+                plt.grid(True)
+                plt.savefig('results/images/histograms/json_size.png', dpi=300)
+
+            # Total Time
+            x = 'Total Time (s)'
+            y = 'Frequency'
+            plt.clf()
+            plt.title(f"{x} for {worker} kv-worker{'s' if worker > 1 else ''}")
+            plt.xlabel(f'{x}')
+            plt.ylabel(f'{y}')
+            plt.hist('total_time', data=data, bins='auto')
+            xmax = 10 * ceil(max(data['total_time']) / 10)
+            ymax = 10 * ceil(plt.axis()[3] / 10)
+            plt.axis([0, xmax, 0, ymax])
+            plt.grid(True)
+            plt.savefig(f"results/images/histograms/total_time_{worker}_kv-worker{'s' if worker > 1 else ''}.png", dpi=300)
+
+            # Elapsed Time
+            x = 'Elapsed Time (s)'
+            y = 'Frequency'
+            plt.clf()
+            plt.title(f"{x} for {worker} kv-worker{'s' if worker > 1 else ''}")
+            plt.hist('elapsed_time', data=data, bins='auto')
+            plt.xlabel(f'{x}')
+            plt.ylabel(f'{y}')
+            xmax = 10 * ceil(max(data['elapsed_time']) / 10)
+            ymax = 10 * ceil(plt.axis()[3] / 10)
+            plt.axis([0, xmax, 0, ymax])
+            plt.grid(True)
+            plt.savefig(f"results/images/histograms/elapsed_time_{worker}_kv-worker{'s' if worker > 1 else ''}.png", dpi=300)
+
+            # Worker Time
+            x = 'Worker Time (s)'
+            y = 'Frequency'
+            plt.clf()
+            plt.title(f"{x} for {worker} kv-worker{'s' if worker > 1 else ''}")
+            plt.hist('worker_time', data=data, bins='auto')
+            plt.xlabel(f'{x}')
+            plt.ylabel(f'{y}')
+            xmax = 10 * ceil(max(data['worker_time']) / 10)
+            ymax = 10 * ceil(plt.axis()[3] / 10)
+            plt.axis([0, xmax, 0, ymax])
+            plt.grid(True)
+            plt.savefig(f"results/images/histograms/worker_time_{worker}_kv-worker{'s' if worker > 1 else ''}.png", dpi=300)
+
+
 def get_number_of_atoms(pdb):
     from Bio.PDB import PDBParser
     # Read pdb
@@ -423,9 +618,14 @@ if __name__ == "__main__":
         print("> Retrieving jobs from KV Server")
 
         # Create and Configure Retriever
-        retriever = Retriever(server="http://localhost:8081")
+        retriever = Retriever(server="http://localhost:8081", workers=workers)
         # Start retriever
         retriever.start()
 
         # Erase .KVFinder-web
         os.system('rm -r .KVFinder-web')
+
+    # Create and configure evaluator
+    evaluator = Evaluator()
+    evaluator.hist()
+    evaluator.scatter()
