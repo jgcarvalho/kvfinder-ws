@@ -373,7 +373,7 @@ class Retriever(object):
 def get_number_of_atoms(pdb):
     from Bio.PDB import PDBParser
     # Read pdb
-    parser = PDBParser(PERMISSIVE=1)
+    parser = PDBParser(PERMISSIVE=1, QUIET=True)
     structure = parser.get_structure(f"{pdb.replace('kv1000/', '').replace('.pdb', '')}", pdb)
     # Count number of atoms
     n_atoms = 0
@@ -413,7 +413,7 @@ if __name__ == "__main__":
             for po in [4.0, 6.0, 8.0]:
                 job = Job(pdb=pdb, probe_out=po)
                 sender.run(job)
-            for rd in [0.6, 1.2, 2.4]:
+            for rd in [0.0, 0.6, 1.2, 2.4]:
                 job = Job(pdb=pdb, removal_distance=rd)
                 sender.run(job)
             print('\b' * 19, end='', flush=True)
