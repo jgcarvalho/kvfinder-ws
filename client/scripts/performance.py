@@ -411,10 +411,10 @@ if __name__ == "__main__":
         for pdb in dataset.pdb_list:
             print(f'> {pdb}', end='', flush=True)       
             for po in [4.0, 6.0, 8.0]:
-                job = Job(pdb=pdb, probe_out=po)
+                job = Job(pdb=pdb, probe_out=po, removal_distance=2.4)
                 sender.run(job)
-            for rd in [0.0, 0.6, 1.2, 2.4]:
-                job = Job(pdb=pdb, removal_distance=rd)
+            for rd in [0.0, 0.6, 1.2]:
+                job = Job(pdb=pdb, probe_out=4.0, removal_distance=rd)
                 sender.run(job)
             print('\b' * 19, end='', flush=True)
         
