@@ -408,7 +408,7 @@ if __name__ == "__main__":
         print("> Sending jobs to KV Server")
 
         # Send jobs to KV server
-        for pdb in dataset.pdb_list[0:10]:
+        for pdb in dataset.pdb_list:
             print(f'> {pdb}', end='', flush=True)       
             for po in [4.0, 6.0, 8.0]:
                 job = Job(pdb=pdb, probe_out=po)
