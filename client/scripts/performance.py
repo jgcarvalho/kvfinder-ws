@@ -314,7 +314,7 @@ class Retriever(object):
                     # json_size
                     json_size = sys.getsizeof(json.dumps(job.output))
                     # n_atoms
-                    n_atoms = get_number_of_atoms(pdb)
+                    n_atoms = get_number_of_atoms(job.pdb)
                     # po
                     po = job.input['settings']['probes']['probe_out']
                     # rd 
