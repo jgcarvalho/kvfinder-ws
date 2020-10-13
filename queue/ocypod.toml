@@ -2,7 +2,7 @@
 host = "0.0.0.0"
 port = 8023
 log_level = "debug"
-max_body_size = "2MiB"
+max_body_size = "10MiB"
 #timeout_check_interval = "1m"
 #retry_check_interval = "30s"
 #expiry_check_interval = "1h"
