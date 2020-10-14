@@ -4,6 +4,7 @@ import dateutil.parser
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from typing import Optional, Any, Dict
 from math import ceil, floor
         
@@ -393,6 +394,62 @@ class Evaluator(object):
         return data
 
 
+    def plots(self):
+        self.scatter()
+        self.hist()
+
+
+    # FIXME: Not useful results to plot yet
+    def bar(self):
+        # Create scatter directory in images directory
+        try: 
+            os.mkdir('results/images/bar')
+        except FileExistsError:
+            pass
+        
+        # Process sum of time
+        data = self.data
+        time = {
+            'total_time': [
+                np.mean(data[data.n_workers == 1]['total_time']),
+                np.mean(data[data.n_workers == 2]['total_time']),
+                np.mean(data[data.n_workers == 3]['total_time']),
+                np.mean(data[data.n_workers == 4]['total_time'])
+            ],
+            'elapsed_time': [
+                np.mean(data[data.n_workers == 1]['elapsed_time']),
+                np.mean(data[data.n_workers == 2]['elapsed_time']),
+                np.mean(data[data.n_workers == 3]['elapsed_time']),
+                np.mean(data[data.n_workers == 4]['elapsed_time'])
+            ],
+            'worker_time': [
+                np.mean(data[data.n_workers == 1]['worker_time']),
+                np.mean(data[data.n_workers == 2]['worker_time']),
+                np.mean(data[data.n_workers == 3]['worker_time']),
+                np.mean(data[data.n_workers == 4]['worker_time'])
+            ]
+        }
+
+        # Set position of bar on X axis
+        width = 0.25
+        r1 = np.arange(len(time['total_time']))
+        r2 = [x + width for x in r1]
+        r3 = [x + width for x in r2]
+
+        # Bar plot: Sum of times
+        plt.clf()
+        cm = plt.cm.get_cmap('Paired')
+        print(time['total_time'])
+        plt.bar(r1, time['total_time'], color=cm(0), width=width, edgecolor='white', label='Total Time (s)')
+        # plt.bar(r2, time['elapsed_time'], color=cm(0.5), width=width, edgecolor='white', label='Elapsed Time (s)')
+        # plt.bar(r3, time['worker_time'], color=cm(1), width=width, edgecolor='white', label='Worker Time (s)')
+        # Axis and Title
+        plt.xlabel('Number of kv-workers')
+        plt.xticks([r + width for r in range(len(time['total_time']))], ['1', '2', '3', '4'])
+        plt.legend()
+        plt.show()
+
+
     def scatter(self):
         # Create scatter directory in images directory
         try: 
@@ -413,10 +470,26 @@ class Evaluator(object):
                 x = 'Number of atoms'
                 y = 'JSON size (Mb)'
                 plt.clf()
-                groups = data.groupby('probe_out')
+                # Scatter
+                cm = plt.cm.get_cmap('Paired')
+                mask = data['removal_distance'] == 2.4
+                plt.scatter(data.n_atoms[mask], data.json_size[mask], c=data.probe_out[mask], marker='o', s=5, cmap=cm, alpha=0.5)
+                # Trendline
+                groups = data[mask].groupby('probe_out')
                 for name, group in groups:
-                    plt.scatter(group.n_atoms, group.json_size, label=name, marker = 'o', s=10)
-                plt.legend(title='Probe Out (A)')
+                    k = np.polyfit(group.n_atoms, group.json_size, 1)
+                    f = np.poly1d(k)
+                    color = ( float(name) - min(data[mask].probe_out) ) / ( max(data[mask].probe_out) - min(data[mask].probe_out) )
+                    plt.plot(group.n_atoms, f(group.n_atoms), c=cm(color))
+                # Legend
+                custom_lines = [
+                    Line2D([0], [0], color='w', markerfacecolor=cm(0.0), marker='o', markersize=8), 
+                    Line2D([0], [0], color='w', markerfacecolor=cm(0.5), marker='o', markersize=8), 
+                    Line2D([0], [0], color='w', markerfacecolor=cm(1.0), marker='o', markersize=8)
+                    ]
+                plt.legend(custom_lines, ['4.0', '6.0', '8.0'], ncol=3, title='Probe Out (A)', fontsize=8, title_fontsize=8, loc='upper left')
+                # Axis and Title
+                plt.title(f"{y} x {x} for {worker} kv-worker{'s' if worker > 1 else ''}")
                 plt.xlabel(f'{x}')
                 plt.ylabel(f'{y}')
                 xmax = 1000 * ceil(max(data['n_atoms']) / 1000)
@@ -429,10 +502,28 @@ class Evaluator(object):
                 x = 'Number of atoms'
                 y = 'JSON size (Mb)'
                 plt.clf()
-                groups = data.groupby('removal_distance')
+                # Scatter
+                # Scatter
+                cm = plt.cm.get_cmap('Paired')
+                mask = data['probe_out'] == 4.0
+                plt.scatter(data.n_atoms[mask], data.json_size[mask], c=data.removal_distance[mask], marker='o', s=5, cmap=cm, alpha=0.5)
+                # Trendline
+                groups = data[mask].groupby('removal_distance')
                 for name, group in groups:
-                    plt.scatter(group.n_atoms, group.json_size, label=name, marker = 'o', s=10)
-                plt.legend(title='Removal Distance (A)')
+                    k = np.polyfit(group.n_atoms, group.json_size, 1)
+                    f = np.poly1d(k)
+                    color = ( float(name) - min(data[mask].removal_distance) ) / ( max(data[mask].removal_distance) - min(data[mask].removal_distance) )
+                    plt.plot(group.n_atoms, f(group.n_atoms), c=cm(color))
+                # Legend
+                custom_lines = [
+                    Line2D([0], [0], color='w', markerfacecolor=cm(0.0), marker='o', markersize=8), 
+                    Line2D([0], [0], color='w', markerfacecolor=cm(0.25), marker='o', markersize=8), 
+                    Line2D([0], [0], color='w', markerfacecolor=cm(0.5), marker='o', markersize=8),
+                    Line2D([0], [0], color='w', markerfacecolor=cm(1.0), marker='o', markersize=8)
+                    ]
+                plt.legend(custom_lines, ['0.0', '0.6', '1.2', '2.4'], ncol=4, title='Removal Distance (A)', fontsize=8, title_fontsize=8, loc='upper left')
+                # Axis and Title
+                plt.title(f"{y} x {x} for {worker} kv-worker{'s' if worker > 1 else ''}")
                 plt.xlabel(f'{x}')
                 plt.ylabel(f'{y}')
                 xmax = 1000 * ceil(max(data['n_atoms']) / 1000)
@@ -441,59 +532,94 @@ class Evaluator(object):
                 plt.grid(True)
                 plt.savefig('results/images/scatter/json_x_atoms_with_removal_distance.png', dpi=300)
                 
-            # JSON size x Number of atoms - colored by elapsed time
-            x = 'Number of atoms'
-            y = 'JSON size (Mb)'
-            plt.clf()
-            cm = plt.cm.get_cmap('coolwarm')
-            color = data.elapsed_time
-            sc = plt.scatter(data.n_atoms, data.json_size, c=color, cmap=cm, vmin=0, vmax=ceil(max(data.elapsed_time)), marker = 'o')
-            plt.colorbar(sc, pad = 0.05)
-            plt.xlabel(f'{x}')
-            plt.ylabel(f'{y}')
-            xmax = 1000 * ceil(max(data['n_atoms']) / 1000)
-            ymax = 1 * ceil(max(data['json_size']) / 1)
-            plt.axis([0, xmax, 0, ymax])
-            plt.grid(True)
-            plt.savefig(f"results/images/scatter/json_x_atoms_with_elapsed_time_{worker}_kv-worker{'s' if worker > 1 else ''}.png", dpi=300)
+                # JSON size x Number of atoms - colored by elapsed time
+                x = 'Number of atoms'
+                y = 'JSON size (Mb)'
+                plt.clf()
+                # Scatter
+                cm = plt.cm.get_cmap('coolwarm')
+                color = data.elapsed_time
+                sc = plt.scatter(data.n_atoms, data.json_size, c=color, cmap=cm, vmin=0, vmax=ceil(max(data.elapsed_time)), marker = 'o', s=5)
+                # Colorbar
+                cbar = plt.colorbar(sc, pad = 0.005, orientation='vertical', aspect = 40)
+                cbar.ax.get_yaxis().labelpad = 15
+                cbar.ax.set_ylabel('Elapsed Time (s)', rotation=270)
+                # Axis and Title
+                plt.title(f"{y} x {x} for {worker} kv-worker{'s' if worker > 1 else ''}")
+                plt.xlabel(f'{x}')
+                plt.ylabel(f'{y}')
+                xmax = 1000 * ceil(max(data['n_atoms']) / 1000)
+                ymax = 1 * ceil(max(data['json_size']) / 1)
+                plt.axis([0, xmax, 0, ymax])
+                plt.grid(True)
+                plt.savefig(f"results/images/scatter/json_x_atoms_with_elapsed_time_{worker}_kv-worker{'s' if worker > 1 else ''}.png", dpi=300)
 
-            # Elapsed time x Number of atoms - colored by probe out
-            x = 'Number of atoms'
-            y = 'Elapsed time (s)'
-            plt.clf()
-            groups = data.groupby('probe_out')
-            for name, group in groups:
-                plt.scatter(group.n_atoms, group.elapsed_time, label=name, marker = 'o')
-                k = np.polyfit(group.n_atoms, group.elapsed_time, 1)
-                f = np.poly1d(k)
-                plt.plot(group.n_atoms, f(group.n_atoms), "r--", label=name, marker = 'o')                
-            plt.legend()
-            plt.xlabel(f'{x}')
-            plt.ylabel(f'{y}')
-            xmax = 1 * ceil(max(data['n_atoms']) / 1)
-            ymax = 10 * ceil(plt.axis()[3] / 10)
-            plt.axis([0, xmax, 0, ymax])
-            plt.grid(True)
-            plt.savefig(f"results/images/scatter/elapsed_time_x_atoms_with_probe_out_{worker}_kv-worker{'s' if worker > 1 else ''}.png", dpi=300)
-
-            # Elapsed time x Number of atoms - colored by removal distance
-            x = 'Number of atoms'
-            y = 'Elapsed time (s)'
-            plt.clf()
-            groups = data.groupby('removal_distance')
-            for name, group in groups:
-                plt.scatter(group.n_atoms, group.elapsed_time, label=name, marker = 'o')
-                k = np.polyfit(group.n_atoms, group.elapsed_time, 1)
-                f = np.poly1d(k)
-                plt.plot(group.n_atoms, f(group.n_atoms), "r--", label=name, marker = 'o')                
-            plt.legend()
-            plt.xlabel(f'{x}')
-            plt.ylabel(f'{y}')
-            xmax = 1 * ceil(max(data['n_atoms']) / 1)
-            ymax = 10 * ceil(plt.axis()[3] / 10)
-            plt.axis([0, xmax, 0, ymax])
-            plt.grid(True)
-            plt.savefig(f"results/images/scatter/elapsed_time_x_atoms_with_removal_distance_{worker}_kv-worker{'s' if worker > 1 else ''}.png", dpi=300)
+                # Elapsed time x Number of atoms - colored by probe out
+                x = 'Number of atoms'
+                y = 'Elapsed time (s)'
+                plt.clf()
+                # Scatter
+                cm = plt.cm.get_cmap('Paired')
+                mask = data['removal_distance'] == 2.4
+                plt.scatter(data[mask].n_atoms, data[mask].elapsed_time, c=data[mask].probe_out, marker='o', s=5, cmap=cm, alpha=0.5)
+                # Trendline
+                groups = data[mask].groupby('probe_out')
+                for name, group in groups:
+                    k = np.polyfit(group.n_atoms, group.elapsed_time, 1)
+                    f = np.poly1d(k)
+                    color = ( float(name) - min(data.probe_out) ) / ( max(data.probe_out) - min(data.probe_out) )
+                    plt.plot(group.n_atoms, f(group.n_atoms), c=cm(color))
+                # Legend                
+                custom_lines = [
+                    Line2D([0], [0], color=cm(0.0), marker='o', markersize=8), 
+                    Line2D([0], [0], color=cm(0.5), marker='o', markersize=8),
+                    Line2D([0], [0], color=cm(1.0), marker='o', markersize=8)
+                    ]
+                plt.legend(custom_lines, ['4.0', '6.0', '8.0'], ncol=3, title='Probe Out (A)', fontsize=8, title_fontsize=8, loc='upper left')
+                # Axis and Title
+                plt.title(f"{y} x {x} for {worker} kv-worker{'s' if worker > 1 else ''}")
+                plt.xlabel(f'{x}')
+                plt.ylabel(f'{y}')
+                xmax = 1 * ceil(max(data['n_atoms']) / 1)
+                ymax = 10 * ceil(plt.axis()[3] / 10)
+                plt.axis([0, xmax, 0, ymax])
+                plt.grid(True)
+                plt.savefig(f"results/images/scatter/elapsed_time_x_atoms_with_probe_out_{worker}_kv-worker{'s' if worker > 1 else ''}.png", dpi=300)
+                
+                # Elapsed time x Number of atoms - colored by removal distance
+                # FIXME:
+                x = 'Number of atoms'
+                y = 'Elapsed time (s)'
+                plt.clf()
+                # Scatter
+                cm = plt.cm.get_cmap('Paired')
+                mask = data['probe_out'] == 4.0
+                plt.scatter(data[mask].n_atoms, data[mask].elapsed_time, c=data[mask].removal_distance, marker='o', s=5, cmap=cm, alpha=0.5)
+                # Trendline
+                groups = data[mask].groupby('removal_distance')
+                for name, group in groups:
+                    k = np.polyfit(group.n_atoms, group.elapsed_time, 1)
+                    f = np.poly1d(k)
+                    color = ( float(name) - min(data.removal_distance) ) / ( max(data.removal_distance) - min(data.removal_distance) )
+                    plt.plot(group.n_atoms, f(group.n_atoms), c=cm(color))
+                # Legend                
+                custom_lines = [
+                    Line2D([0], [0], color='w', markerfacecolor=cm(0.0), marker='o', markersize=8), 
+                    Line2D([0], [0], color='w', markerfacecolor=cm(0.25), marker='o', markersize=8), 
+                    Line2D([0], [0], color='w', markerfacecolor=cm(0.5), marker='o', markersize=8),
+                    Line2D([0], [0], color='w', markerfacecolor=cm(1.0), marker='o', markersize=8)
+                    ]
+                plt.legend(custom_lines, ['0.0', '0.6', '1.2', '2.4'], ncol=4, title='Removal Distance (A)', fontsize=8, title_fontsize=8, loc='upper left')
+                # Axis and Title
+                plt.title(f"{y} x {x} for {worker} kv-worker{'s' if worker > 1 else ''}")
+                plt.xlabel(f'{x}')
+                plt.ylabel(f'{y}')
+                xmax = 1 * ceil(max(data['n_atoms']) / 1)
+                ymax = 10 * ceil(plt.axis()[3] / 10)
+                plt.axis([0, xmax, 0, ymax])
+                plt.grid(True)
+                plt.savefig(f"results/images/scatter/elapsed_time_x_atoms_with_removal_distance_{worker}_kv-worker{'s' if worker > 1 else ''}.png", dpi=300)
+                exit()
         
 
     def hist(self):
@@ -644,5 +770,4 @@ if __name__ == "__main__":
 
     # Create and configure evaluator
     evaluator = Evaluator()
-    evaluator.hist()
-    evaluator.scatter()
+    evaluator.plots()
