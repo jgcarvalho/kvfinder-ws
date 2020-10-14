@@ -2,6 +2,7 @@ import os, sys, toml, json, zlib, time
 import requests
 import dateutil.parser
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 from typing import Optional, Any, Dict
 from math import ceil, floor
@@ -391,6 +392,7 @@ class Evaluator(object):
         data = pd.read_table(time_fn, index_col=False)
         return data
 
+
     def scatter(self):
         # Create scatter directory in images directory
         try: 
@@ -411,11 +413,14 @@ class Evaluator(object):
                 x = 'Number of atoms'
                 y = 'JSON size (Mb)'
                 plt.clf()
-                plt.scatter(x='json_size', y='n_atoms', color='probe_out', data=data)
+                groups = data.groupby('probe_out')
+                for name, group in groups:
+                    plt.scatter(group.n_atoms, group.json_size, label=name, marker = 'o', s=10)
+                plt.legend(title='Probe Out (A)')
                 plt.xlabel(f'{x}')
                 plt.ylabel(f'{y}')
-                xmax = 1 * ceil(max(data['n_atoms']) / 1)
-                ymax = 10 * ceil(plt.axis()[3] / 10)
+                xmax = 1000 * ceil(max(data['n_atoms']) / 1000)
+                ymax = 1 * ceil(max(data['json_size']) / 1)
                 plt.axis([0, xmax, 0, ymax])
                 plt.grid(True)
                 plt.savefig('results/images/scatter/json_x_atoms_with_probe_out.png', dpi=300)
@@ -424,11 +429,14 @@ class Evaluator(object):
                 x = 'Number of atoms'
                 y = 'JSON size (Mb)'
                 plt.clf()
-                plt.scatter(x='json_size', y='n_atoms', color='removal_distance', data=data)
+                groups = data.groupby('removal_distance')
+                for name, group in groups:
+                    plt.scatter(group.n_atoms, group.json_size, label=name, marker = 'o', s=10)
+                plt.legend(title='Removal Distance (A)')
                 plt.xlabel(f'{x}')
                 plt.ylabel(f'{y}')
-                xmax = 1 * ceil(max(data['n_atoms']) / 1)
-                ymax = 10 * ceil(plt.axis()[3] / 10)
+                xmax = 1000 * ceil(max(data['n_atoms']) / 1000)
+                ymax = 1 * ceil(max(data['json_size']) / 1)
                 plt.axis([0, xmax, 0, ymax])
                 plt.grid(True)
                 plt.savefig('results/images/scatter/json_x_atoms_with_removal_distance.png', dpi=300)
@@ -437,11 +445,14 @@ class Evaluator(object):
             x = 'Number of atoms'
             y = 'JSON size (Mb)'
             plt.clf()
-            plt.scatter(x='json_size', y='n_atoms', color='elapsed_time', data=data)
+            cm = plt.cm.get_cmap('coolwarm')
+            color = data.elapsed_time
+            sc = plt.scatter(data.n_atoms, data.json_size, c=color, cmap=cm, vmin=0, vmax=ceil(max(data.elapsed_time)), marker = 'o')
+            plt.colorbar(sc, pad = 0.05)
             plt.xlabel(f'{x}')
             plt.ylabel(f'{y}')
-            xmax = 1 * ceil(max(data['n_atoms']) / 1)
-            ymax = 10 * ceil(plt.axis()[3] / 10)
+            xmax = 1000 * ceil(max(data['n_atoms']) / 1000)
+            ymax = 1 * ceil(max(data['json_size']) / 1)
             plt.axis([0, xmax, 0, ymax])
             plt.grid(True)
             plt.savefig(f"results/images/scatter/json_x_atoms_with_elapsed_time_{worker}_kv-worker{'s' if worker > 1 else ''}.png", dpi=300)
@@ -450,10 +461,13 @@ class Evaluator(object):
             x = 'Number of atoms'
             y = 'Elapsed time (s)'
             plt.clf()
-            plt.scatter(x='n_atoms', y='elapsed_time', color='probe_out', data=data)
-            # k = np.polyfit(data['n_atoms'], data['elapsed_time'], 1)
-            # f = np.poly1d(k)
-            # plt.plot(data['n_atoms'], f(data['n_atoms']), "r--")
+            groups = data.groupby('probe_out')
+            for name, group in groups:
+                plt.scatter(group.n_atoms, group.elapsed_time, label=name, marker = 'o')
+                k = np.polyfit(group.n_atoms, group.elapsed_time, 1)
+                f = np.poly1d(k)
+                plt.plot(group.n_atoms, f(group.n_atoms), "r--", label=name, marker = 'o')                
+            plt.legend()
             plt.xlabel(f'{x}')
             plt.ylabel(f'{y}')
             xmax = 1 * ceil(max(data['n_atoms']) / 1)
@@ -466,10 +480,13 @@ class Evaluator(object):
             x = 'Number of atoms'
             y = 'Elapsed time (s)'
             plt.clf()
-            plt.scatter(x='n_atoms', y='elapsed_time', color='removal_distance', data=data)
-            # k = np.polyfit(data['n_atoms'], data['elapsed_time'], 1)
-            # f = np.poly1d(k)
-            # plt.plot(data['n_atoms'], f(data['n_atoms']), "r--")
+            groups = data.groupby('removal_distance')
+            for name, group in groups:
+                plt.scatter(group.n_atoms, group.elapsed_time, label=name, marker = 'o')
+                k = np.polyfit(group.n_atoms, group.elapsed_time, 1)
+                f = np.poly1d(k)
+                plt.plot(group.n_atoms, f(group.n_atoms), "r--", label=name, marker = 'o')                
+            plt.legend()
             plt.xlabel(f'{x}')
             plt.ylabel(f'{y}')
             xmax = 1 * ceil(max(data['n_atoms']) / 1)
@@ -590,40 +607,40 @@ if __name__ == "__main__":
     except FileExistsError:
         pass
 
-    for workers in [1, 2, 3, 4]:
+    # for workers in [1, 2, 3, 4]:
 
-        print(f"[==> KV Server working with {workers} worker{'s' if workers > 1 else ''}")
+    #     print(f"[==> KV Server working with {workers} worker{'s' if workers > 1 else ''}")
 
-        # Docker up
-        os.system(f'docker-compose up -d --scale kv-worker={workers}')
+    #     # Docker up
+    #     os.system(f'docker-compose up -d --scale kv-worker={workers}')
 
-        # Create and Configure Sender
-        sender = Sender(server="http://localhost:8081")
+    #     # Create and Configure Sender
+    #     sender = Sender(server="http://localhost:8081")
 
-        print("> Sending jobs to KV Server")
+    #     print("> Sending jobs to KV Server")
 
-        # Send jobs to KV server
-        for pdb in dataset.pdb_list:
-            print(f'> {pdb}', end='', flush=True)       
-            for po in [4.0, 6.0, 8.0]:
-                job = Job(pdb=pdb, probe_out=po, removal_distance=2.4)
-                sender.run(job)
-            for rd in [0.0, 0.6, 1.2]:
-                job = Job(pdb=pdb, probe_out=4.0, removal_distance=rd)
-                sender.run(job)
-            print('\b' * 19, end='', flush=True)
+    #     # Send jobs to KV server
+    #     for pdb in dataset.pdb_list:
+    #         print(f'> {pdb}', end='', flush=True)       
+    #         for po in [4.0, 6.0, 8.0]:
+    #             job = Job(pdb=pdb, probe_out=po, removal_distance=2.4)
+    #             sender.run(job)
+    #         for rd in [0.0, 0.6, 1.2]:
+    #             job = Job(pdb=pdb, probe_out=4.0, removal_distance=rd)
+    #             sender.run(job)
+    #         print('\b' * 19, end='', flush=True)
         
-        time.sleep(60)
+    #     time.sleep(60)
 
-        print("> Retrieving jobs from KV Server")
+    #     print("> Retrieving jobs from KV Server")
 
-        # Create and Configure Retriever
-        retriever = Retriever(server="http://localhost:8081", workers=workers)
-        # Start retriever
-        retriever.start()
+    #     # Create and Configure Retriever
+    #     retriever = Retriever(server="http://localhost:8081", workers=workers)
+    #     # Start retriever
+    #     retriever.start()
 
-        # Erase .KVFinder-web
-        os.system('rm -r .KVFinder-web')
+    #     # Erase .KVFinder-web
+    #     os.system('rm -r .KVFinder-web')
 
     # Create and configure evaluator
     evaluator = Evaluator()
