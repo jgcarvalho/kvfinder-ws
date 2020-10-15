@@ -9,4 +9,11 @@ PyMOL-KVFinder-web-tools/
 !requirements.txt
 
 # Performance evaluation scripts
-scripts/kv1000/
+scripts/*
+!scripts/results
+!scripts/kv1000.zip
+!scripts/performance.py
+!scripts/client.py
+!scripts/results/.gitignore
+!scripts/results/images
+!scripts/results/time-statistics.txt
