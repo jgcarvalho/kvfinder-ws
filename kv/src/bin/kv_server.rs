@@ -4,7 +4,7 @@ use actix_web::{HttpServer, App, web};
 fn main() {
     println!("KVFinder webserver started");
 
-    kv::webserver::create_ocypod_queue("kvfinder", "30m", "1440m", 0);
+    kv::webserver::create_ocypod_queue("kvfinder", "30m", "1d", 0);
 
     HttpServer::new(|| {
         App::new()
