@@ -14,6 +14,6 @@ scripts/*
 !scripts/kv1000.zip
 !scripts/performance.py
 !scripts/client.py
-!scripts/results/.gitignore
-!scripts/results/images
+scripts/results/*
+!scripts/results/images/
 !scripts/results/time-statistics.txt
