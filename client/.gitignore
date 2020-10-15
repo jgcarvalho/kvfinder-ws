@@ -12,6 +12,7 @@ PyMOL-KVFinder-web-tools/
 scripts/*
 !scripts/performance.py
 !scripts/kv1000.zip
-!scripts/results
+!scripts/results/
+scripts/results/*
 !scripts/results/images
 !scripts/results/time-statistics.txt
