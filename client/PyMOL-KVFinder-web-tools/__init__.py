@@ -32,6 +32,7 @@ from PyQt5.QtCore import QThread, pyqtSlot, pyqtSignal
 
 # global reference to avoid garbage collection of our dialog
 dialog = None
+worker = None
 
 
 ########## Relevant information ##########
@@ -166,7 +167,9 @@ class PyMOLKVFinderWebTools(QMainWindow):
             pass
 
         # Start Worker thread to handle available jobs
-        self._start_worker_thread()
+        global worker
+        if worker is None:
+            worker = self._start_worker_thread()
 
         # Get available jobs
         self.available_jobs.addItems(_get_jobs())

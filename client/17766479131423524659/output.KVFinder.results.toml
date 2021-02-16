@@ -1,0 +1,29 @@
+# TOML results file for parKVFinder software
+
+title = "parKVFinder results file"
+
+[FILES_PATH]
+INPUT = "/home/jvsguerra/remote-repos/kvfinder-ws/client/1HVR.pdb"
+OUTPUT = "/home/jvsguerra/remote-repos/kvfinder-ws/client/17766479131423524659/output.KVFinder.output.pdb"
+
+[PARAMETERS]
+RESOLUTION = "Low"
+STEP_SIZE = 0.6
+
+[RESULTS.VOLUME]
+KAA = 14.9
+KAB = 7.34
+KAC = 745.63
+KAD = 23.33
+
+[RESULTS.AREA]
+KAA = 7.8
+KAB = 4.94
+KAC = 166.46
+KAD = 13.91
+
+[RESULTS.RESIDUES]
+KAA = [ [ "65", "B", "E",], [ "14", "B", "K",], [ "15", "B", "I",], [ "16", "B", "G",], [ "17", "B", "G",], [ "63", "B", "L",], [ "64", "B", "I",],]
+KAB = [ [ "63", "B", "L",], [ "15", "B", "I",], [ "16", "B", "G",], [ "38", "B", "L",], [ "62", "B", "I",],]
+KAC = [ [ "84", "B", "I",], [ "8", "A", "R",], [ "23", "A", "L",], [ "25", "A", "D",], [ "27", "A", "G",], [ "28", "A", "A",], [ "29", "A", "D",], [ "30", "A", "D",], [ "32", "A", "V",], [ "47", "A", "I",], [ "48", "A", "G",], [ "49", "A", "G",], [ "50", "A", "I",], [ "76", "A", "L",], [ "80", "A", "T",], [ "81", "A", "P",], [ "82", "A", "V",], [ "84", "A", "I",], [ "8", "B", "R",], [ "23", "B", "L",], [ "25", "B", "D",], [ "27", "B", "G",], [ "28", "B", "A",], [ "29", "B", "D",], [ "30", "B", "D",], [ "32", "B", "V",], [ "47", "B", "I",], [ "48", "B", "G",], [ "49", "B", "G",], [ "50", "B", "I",], [ "76", "B", "L",], [ "80", "B", "T",], [ "81", "B", "P",], [ "82", "B", "V",],]
+KAD = [ [ "65", "A", "E",], [ "14", "A", "K",], [ "15", "A", "I",], [ "16", "A", "G",], [ "17", "A", "G",], [ "38", "A", "L",], [ "62", "A", "I",], [ "63", "A", "L",], [ "64", "A", "I",],]

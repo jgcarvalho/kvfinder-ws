@@ -1,0 +1,73 @@
+# TOML configuration file for KVFinder-web job.
+
+title = "KVFinder-web parameters file"
+
+[files]
+# The path of the input PDB file.
+pdb = "/home/jvsguerra/remote-repos/kvfinder-ws/client/1HVR.pdb"
+# The path for the ligand's PDB file.
+ligand = "-"
+
+[settings]
+# Settings for cavity detection.
+
+[settings.modes]
+whole_protein_mode = true
+box_mode = false
+resolution_mode = "Low"
+surface_mode = true
+kvp_mode = false
+ligand_mode = false
+
+[settings.step_size]
+step_size = 0.0
+
+[settings.probes]
+probe_in = 1.4
+probe_out = 4.0
+
+[settings.cutoffs]
+volume_cutoff = 5.0
+ligand_cutoff = 5.0
+removal_distance = 2.4
+
+[settings.visiblebox.p1]
+x = 0.0
+y = 0.0
+z = 0.0
+
+[settings.visiblebox.p2]
+x = 0.0
+y = 0.0
+z = 0.0
+
+[settings.visiblebox.p3]
+x = 0.0
+y = 0.0
+z = 0.0
+
+[settings.visiblebox.p4]
+x = 0.0
+y = 0.0
+z = 0.0
+
+[settings.internalbox.p1]
+x = -4.0
+y = -4.0
+z = -4.0
+
+[settings.internalbox.p2]
+x = 4.0
+y = -4.0
+z = -4.0
+
+[settings.internalbox.p3]
+x = -4.0
+y = 4.0
+z = -4.0
+
+[settings.internalbox.p4]
+x = -4.0
+y = -4.0
+z = 4.0
+
