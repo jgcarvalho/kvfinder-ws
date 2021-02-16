@@ -129,7 +129,7 @@ class PyMOLKVFinderWebTools(QMainWindow):
     # Signals
     msgbox_signal = pyqtSignal(bool)
 
-    def __init__(self, server="http://localhost", port="8081"):
+    def __init__(self, server="http://10.0.42.94", port="8081"):
         super(PyMOLKVFinderWebTools, self).__init__()
         from PyQt5.QtNetwork import QNetworkAccessManager
 
@@ -2029,7 +2029,8 @@ class Worker(QThread):
                     print('> Checking KVFinder-web server status ...')
                 
                 # Check server status
-                while not ( status := _check_server_status(self.server) ):
+                status = _check_server_status(self.server)
+                while not ( status ):
                     if verbosity in [2, 3]:
                         print("\n\033[93mWarning:\033[0m KVFinder-web server is Offline!\n")
                     # Send signal that server is down
