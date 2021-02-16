@@ -61,7 +61,7 @@ times_job_completed_no_checked = 10      #
 # 1: Print GUI information               #
 # 2: Print Worker information            #
 # 3: Print all information (Worker/GUI)  #
-verbosity = 3                            #
+verbosity = 0                            #
 ##########################################
 
 
