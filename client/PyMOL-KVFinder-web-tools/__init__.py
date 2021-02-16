@@ -35,6 +35,8 @@ dialog = None
 
 
 ########## Relevant information ##########
+# Server                                 #
+server = "http://localhost"              #
 # Days until job expire                  #
 days_job_expire = 1                      #
                                          #
@@ -129,7 +131,7 @@ class PyMOLKVFinderWebTools(QMainWindow):
     # Signals
     msgbox_signal = pyqtSignal(bool)
 
-    def __init__(self, server="http://10.0.42.94", port="8081"):
+    def __init__(self, server=server, port="8081"):
         super(PyMOLKVFinderWebTools, self).__init__()
         from PyQt5.QtNetwork import QNetworkAccessManager
 
