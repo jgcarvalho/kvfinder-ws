@@ -37,29 +37,30 @@ dialog = None
 ########## Relevant information ##########
 # Server                                 #
 server = "http://localhost"              #
+#                                        #
 # Days until job expire                  #
 days_job_expire = 1                      #
-                                         #
+#                                        #
 # Data limit                             #
 data_limit = '1 Mb'                      #
-                                         #
+#                                        #
 # Timers (msec)                          #
-time_restart_job_checks = 60000          #
+time_restart_job_checks = 5000           #
 time_server_down = 60000                 #
-time_no_jobs = 60000                     #
-time_between_jobs = 10000                #
+time_no_jobs = 1000                      #
+time_between_jobs = 1000                 #
 time_wait_status = 1000                  #
-                                         #
+#                                        #
 # Times jobs completed with downloaded   #
 # results are not checked in server      #
 times_job_completed_no_checked = 10      #
-                                         #
+#                                        #
 # Verbosity: print extra information     #
 # 0: No extra information                #
 # 1: Print GUI information               #
 # 2: Print Worker information            #
 # 3: Print all information (Worker/GUI)  #
-verbosity = 0                            #
+verbosity = 3                            #
 ##########################################
 
 
@@ -302,7 +303,7 @@ class PyMOLKVFinderWebTools(QMainWindow):
 
                 # Add Job ID to Results tab
                 self.available_jobs.clear()
-                self.available_jobs.addItem(_get_jobs())
+                self.available_jobs.addItems(_get_jobs())
                 self.available_jobs.setCurrentText(self.job.id)
                 
             # Job already sent to KVFinder-web server
@@ -1786,14 +1787,19 @@ class Job(object):
         if 'pdb' in parameters['files'].keys():
             if parameters['files']['pdb'] is not None:
                 self.pdb = os.path.join(self.output_directory, parameters['files']['pdb'] + '.pdb')
-                cmd.save(self.pdb, parameters['files']['pdb'], 0,  'pdb')
+                if not os.path.exists(self.pdb):
+                    if parameters['files']['pdb'] in cmd.get_names("all"):
+                        cmd.save(self.pdb, parameters['files']['pdb'], 0,  'pdb')
         # Ligand PDB
         if 'ligand' in parameters['files'].keys():
             if parameters['files']['ligand'] is not None:
                 self.ligand = os.path.join(self.output_directory, parameters['files']['ligand'] + '.pdb')
-                cmd.save(self.ligand, parameters['files']['ligand'], 0, "pdb")\
+                if not os.path.exists(self.ligand):
+                    if parameters['files']['ligand'] in cmd.get_names("all"):
+                        cmd.save(self.ligand, parameters['files']['ligand'], 0,  'pdb')
         # Request information (server)
         # Input PDB
+        print(self.pdb)
         if self.pdb:
             self._add_pdb(self.pdb)
         # Ligand PDB
@@ -1952,7 +1958,7 @@ class Worker(QThread):
         counter = 0
 
         while True:
-            
+          
             # Loop to wait QMessageBox signal from GUI thread that delete jobs that are no long available in KVFinder-web server
             while self.wait:
                 # Wait timer to check wait status
@@ -1976,6 +1982,7 @@ class Worker(QThread):
                 
                 # Check all job ids
                 for job_id in jobs:
+
                     # Message to user
                     if verbosity in [2, 3]:
                         print(f"> Checking Job ID: {job_id}")
@@ -2055,7 +2062,10 @@ class Worker(QThread):
                 # Wait timer when no jobs are being checked 
                 loop = QEventLoop()
                 QTimer.singleShot(time_no_jobs, loop.quit)
-                loop.exec_()             
+                loop.exec_()
+
+            if dialog is None:
+                self.terminate()        
 
     
     def _get_results(self, job_id) -> None:
@@ -2541,17 +2551,3 @@ about_text = """
 <p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Citation for PyMOL 2 may be found here:</p>
 <p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><a href="http://pymol.sourceforge.net/faq.html#CITE"><span style=" text-decoration: underline; color:#0000ff;">https://pymol.org/2/support.html?</span></a></p></body></html>
 """.format(days_job_expire, 's' if days_job_expire > 1 else '')
-
-
-def KVFinderWebTools() -> None:
-    """ Debug KVFinderWebTools """
-    from PyQt5.QtWidgets import QApplication
-    app = QApplication(sys.argv)
-    dialog = PyMOLKVFinderWebTools()
-    dialog.setWindowTitle('KVFinder-web Tools')
-    dialog.show()
-    sys.exit(app.exec_())
-
-
-if __name__ == '__main__':
-    KVFinderWebTools()
