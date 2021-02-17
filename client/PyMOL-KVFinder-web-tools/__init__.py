@@ -54,7 +54,7 @@ time_wait_status = 5000                  #
 #                                        #
 # Times jobs completed with downloaded   #
 # results are not checked in server      #
-times_job_completed_no_checked = 10      #
+times_job_completed_no_checked = 500     #
 #                                        #
 # Verbosity: print extra information     #
 # 0: No extra information                #
