@@ -50,7 +50,7 @@ time_restart_job_checks = 5000           #
 time_server_down = 60000                 #
 time_no_jobs = 5000                      #
 time_between_jobs = 2000                 #
-time_wait_status = 2000                  #
+time_wait_status = 5000                  #
 #                                        #
 # Times jobs completed with downloaded   #
 # results are not checked in server      #
