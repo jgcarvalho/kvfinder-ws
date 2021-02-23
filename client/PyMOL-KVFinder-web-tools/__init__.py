@@ -300,7 +300,7 @@ class PyMOLKVFinderWebTools(QMainWindow):
                     "Job successfully submitted to KVFinder-web server!",
                     self.job.id,
                     status=None,
-                    notification=reply['msg'],
+                    notification=notification,
                     )
                 message.exec_()
 
