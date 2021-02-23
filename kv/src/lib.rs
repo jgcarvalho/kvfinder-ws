@@ -128,6 +128,7 @@ mod kv {
     struct Data {
         tags: [String;1],
         input: Input,
+        msg: String,
     }
 
     pub mod worker {
@@ -375,6 +376,7 @@ mod kv {
                 // create a tag using function hash64 applied to input (unique value per input)
                 tags: [city::hash64(serde_json::to_string(&input).unwrap()).to_string()],
                 input,
+                msg: String::from("Testing notification\nThere are a new plugin version available, please download it from our github to use new features!"),
             };
             let create_job = || {
                 let client = reqwest::Client::new();
@@ -383,7 +385,7 @@ mod kv {
                     .json(&data)
                     .send();
                 match response {
-                    Ok(_) => HttpResponse::Ok().json(json!({"id":data.tags[0]})),
+                    Ok(_) => HttpResponse::Ok().json(json!({"id":data.tags[0], "msg": data.msg})),
                     Err(e) => HttpResponse::InternalServerError().body(format!("{:?}", e)),
                 }
             };
